@@ -91,7 +91,9 @@ async function getFFData() {
     errorMsg.style.display = 'none';
     loader.style.display = 'block';
 
-    const url = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
+    const rawUrl = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
+    // CORS Bypass Proxy added here
+    const url = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
 
     try {
         const res = await fetch(url);
