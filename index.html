@@ -91,15 +91,16 @@ async function getFFData() {
     errorMsg.style.display = 'none';
     loader.style.display = 'block';
 
-    const rawUrl = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
-    // CORS Bypass Proxy added here
-    const url = `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`;
+    const targetUrl = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
+    // Reliable proxy for CORS bypass
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Data fetch nahi ho saka!");
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error("Network response not ok");
 
-        const data = await res.json();
+        const wrapperData = await res.json();
+        const data = JSON.parse(wrapperData.contents);
         
         if (data && data.basicInfo) {
             document.getElementById('pName').innerText = data.basicInfo.nickname || "N/A";
@@ -115,7 +116,7 @@ async function getFFData() {
             loader.style.display = 'none';
             resultCard.style.display = 'block';
         } else {
-            throw new Error("Invalid Player UID!");
+            throw new Error("Invalid Player UID ya API issue!");
         }
     } catch (e) {
         loader.style.display = 'none';
