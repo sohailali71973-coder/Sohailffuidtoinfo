@@ -92,21 +92,41 @@ async function getFFData() {
     loader.style.display = 'block';
 
     const targetUrl = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
-    // Reliable proxy for CORS bypass
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // Clean direct CORS proxy
+    const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`;
 
     try {
         const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error("Network response not ok");
+        if (!res.ok) throw new Error("API Connection Failed!");
 
-        const wrapperData = await res.json();
-        const data = JSON.parse(wrapperData.contents);
+        const data = await res.json();
         
         if (data && data.basicInfo) {
             document.getElementById('pName').innerText = data.basicInfo.nickname || "N/A";
             document.getElementById('pUid').innerText = data.basicInfo.accountId || uid;
             document.getElementById('pLevel').innerText = data.basicInfo.level || "0";
             document.getElementById('pLikes').innerText = data.basicInfo.liked || "0";
+            document.getElementById('pRegion').innerText = data.basicInfo.region || "N/A";
+            document.getElementById('pRank').innerText = data.basicInfo.rankingPoints || "0";
+            document.getElementById('pVersion').innerText = data.basicInfo.releaseVersion || "N/A";
+            document.getElementById('pCredit').innerText = data.creditScoreInfo?.creditScore || "N/A";
+            document.getElementById('pSignature').innerText = data.socialInfo?.signature || "No Bio";
+
+            loader.style.display = 'none';
+            resultCard.style.display = 'block';
+        } else {
+            throw new Error("Invalid UID ya Data nahi mila!");
+        }
+    } catch (e) {
+        loader.style.display = 'none';
+        errorMsg.innerText = e.message || "Error fetching data!";
+        errorMsg.style.display = 'block';
+    }
+}
+</script>
+
+</body>
+</html>
             document.getElementById('pRegion').innerText = data.basicInfo.region || "N/A";
             document.getElementById('pRank').innerText = data.basicInfo.rankingPoints || "0";
             document.getElementById('pVersion').innerText = data.basicInfo.releaseVersion || "N/A";
