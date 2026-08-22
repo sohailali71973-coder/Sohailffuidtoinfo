@@ -1,30 +1,42 @@
-<!DOCTYPE html>
+h<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Fire Player Info</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #0f172a; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; }
+        
         .container { background: #1e293b; border: 1px solid #334155; width: 100%; max-width: 420px; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { font-size: 20px; text-align: center; margin-bottom: 15px; color: #38bdf8; text-transform: uppercase; }
+        h1 { font-size: 20px; text-align: center; margin-bottom: 15px; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+        
         .input-group { display: flex; gap: 8px; margin-bottom: 15px; }
         input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: #fff; font-size: 14px; outline: none; }
-        button { padding: 12px 16px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        input:focus { border-color: #38bdf8; }
+        
+        button { padding: 12px 16px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+
         .result-card { display: none; margin-top: 10px; background: #0f172a; padding: 15px; border-radius: 12px; border: 1px solid #334155; }
+        
         .main-header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
         .main-header h2 { color: #facc15; font-size: 18px; }
         .main-header p { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .box { background: #1e293b; padding: 10px; border-radius: 8px; font-size: 12px; border: 1px solid #283548; }
         .box span { color: #94a3b8; font-size: 10px; display: block; margin-bottom: 2px; }
         .box strong { color: #f8fafc; font-size: 13px; }
-        .bio-box { margin-top: 10px; background: #1e293b; padding: 10px; border-radius: 8px; font-size: 11px; border-left: 3px solid #38bdf8; }
+        
+        .bio-box { margin-top: 10px; background: #1e293b; padding: 10px; border-radius: 8px; font-size: 11px; border-left: 3px solid #38bdf8; border: 1px solid #283548; }
+        .bio-box span { color: #94a3b8; font-size: 10px; display: block; margin-bottom: 4px; }
         .bio-box pre { white-space: pre-wrap; font-family: inherit; color: #cbd5e1; }
+
         .footer { margin-top: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
         .footer a { color: #38bdf8; text-decoration: none; font-weight: bold; }
-        .loader { display: none; text-align: center; color: #38bdf8; font-weight: bold; margin: 15px 0; }
+        
+        .loader { display: none; text-align: center; color: #38bdf8; font-weight: bold; margin: 15px 0; font-size: 14px; }
         .error { color: #f43f5e; text-align: center; margin-top: 10px; font-size: 13px; display: none; }
     </style>
 </head>
@@ -32,9 +44,10 @@
 
 <div class="container">
     <h1>Free Fire Player Info</h1>
+    
     <div class="input-group">
         <input type="text" id="uidInput" placeholder="Enter Player UID" value="12022250">
-        <button id="searchBtn">Search</button>
+        <button onclick="getFFData()">Search</button>
     </div>
 
     <div id="loader" class="loader">Fetching Details...</div>
@@ -45,6 +58,7 @@
             <h2 id="pName">-</h2>
             <p>UID: <span id="pUid">-</span> | Region: <span id="pRegion">-</span></p>
         </div>
+        
         <div class="info-grid">
             <div class="box"><span>LEVEL</span><strong id="pLevel">-</strong></div>
             <div class="box"><span>LIKES</span><strong id="pLikes">-</strong></div>
@@ -53,6 +67,7 @@
             <div class="box"><span>CREDIT SCORE</span><strong id="pCredit">-</strong></div>
             <div class="box"><span>CLAN NAME</span><strong id="pClan">-</strong></div>
         </div>
+
         <div class="bio-box">
             <span>BIO / SIGNATURE</span>
             <pre id="pSignature">-</pre>
@@ -65,6 +80,56 @@
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+async function getFFData() {
+    const uid = document.getElementById('uidInput').value.trim();
+    const loader = document.getElementById('loader');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultCard = document.getElementById('resultCard');
+
+    if (!uid) {
+        alert("Please enter a valid UID");
+        return;
+    }
+
+    resultCard.style.display = 'none';
+    errorMsg.style.display = 'none';
+    loader.style.display = 'block';
+
+    const targetUrl = 'https://ff-info-ro45.vercel.app/api?uid=' + uid + '&key=Anurag';
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+
+    try {
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Network response failed");
+
+        const wrapper = await response.json();
+        const data = JSON.parse(wrapper.contents);
+        
+        if (data && data.basicInfo) {
+            document.getElementById('pName').innerText = data.basicInfo.nickname || "N/A";
+            document.getElementById('pUid').innerText = data.basicInfo.accountId || uid;
+            document.getElementById('pLevel').innerText = data.basicInfo.level || "0";
+            document.getElementById('pLikes').innerText = data.basicInfo.liked || "0";
+            document.getElementById('pRegion').innerText = data.basicInfo.region || "N/A";
+            document.getElementById('pRank').innerText = data.basicInfo.rankingPoints || "0";
+            document.getElementById('pCsRank').innerText = data.basicInfo.csRank || "0";
+            document.getElementById('pCredit').innerText = (data.creditScoreInfo && data.creditScoreInfo.creditScore) ? data.creditScoreInfo.creditScore : "N/A";
+            document.getElementById('pClan').innerText = (data.clanBasicInfo && data.clanBasicInfo.clanName) ? data.clanBasicInfo.clanName : "No Clan";
+            document.getElementById('pSignature').innerText = (data.socialInfo && data.socialInfo.signature) ? data.socialInfo.signature : "No Bio";
+
+            loader.style.display = 'none';
+            resultCard.style.display = 'block';
+        } else {
+            throw new Error("Invalid UID or Profile Not Found!");
+        }
+    } catch (e) {
+        loader.style.display = 'none';
+        errorMsg.innerText = "Error: " + (e.message || "Failed to fetch data!");
+        errorMsg.style.display = 'block';
+    }
+}
+</script>
+
 </body>
 </html>
