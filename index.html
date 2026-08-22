@@ -1,36 +1,3 @@
-<!DOCTYPE html>
-<html lang="hi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF UID Info Finder</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #0f172a; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .container { background: #1e293b; width: 100%; max-width: 400px; padding: 20px; border-radius: 12px; text-align: center; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
-        button { width: 100%; padding: 10px; background: #0284c7; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .result { margin-top: 20px; text-align: left; display: none; }
-        .error { color: #ff4d4d; margin-top: 10px; display: none; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>FREE FIRE PLAYER INFO</h1>
-    <input type="text" id="uid" placeholder="Enter UID">
-    <button onclick="fetchData()">Search Profile</button>
-    
-    <div id="loader" style="display:none; margin-top:10px;">Fetching...</div>
-    <div id="error" class="error"></div>
-
-    <div id="result" class="result">
-        <p>Name: <span id="pName"></span></p>
-        <p>Level: <span id="pLevel"></span></p>
-        <p>Likes: <span id="pLikes"></span></p>
-    </div>
-</div>
-
 <script>
 async function fetchData() {
     const uid = document.getElementById('uid').value;
@@ -42,10 +9,17 @@ async function fetchData() {
     error.style.display = 'none';
     loader.style.display = 'block';
 
+    // API URL
+    const apiUrl = 'https://ff-info-ro45.vercel.app/api?uid=' + uid + '&key=Anurag';
+    
+    // API calling via a reliable CORS proxy
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(apiUrl);
+
     try {
-        // Using a reliable public proxy to bypass CORS
-        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://ff-info-ro45.vercel.app/api?uid=' + uid + '&key=Anurag')}`);
+        const response = await fetch(proxyUrl);
         const data = await response.json();
+        
+        // allorigins.win returns data inside a 'contents' field
         const player = JSON.parse(data.contents);
 
         if(player.basicInfo) {
@@ -54,16 +28,14 @@ async function fetchData() {
             document.getElementById('pLikes').innerText = player.basicInfo.liked;
             result.style.display = 'block';
         } else {
-            throw new Error("Data not found");
+            throw new Error("No data found");
         }
     } catch(e) {
-        error.innerText = "Failed to fetch. Check API or UID.";
+        console.error(e);
+        error.innerText = "Error: " + e.message;
         error.style.display = 'block';
     } finally {
         loader.style.display = 'none';
     }
 }
 </script>
-
-</body>
-</html>
