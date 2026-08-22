@@ -1,41 +1,83 @@
-<script>
-async function fetchData() {
-    const uid = document.getElementById('uid').value;
-    const error = document.getElementById('error');
-    const result = document.getElementById('result');
-    const loader = document.getElementById('loader');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FF UID Info</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: #0f172a; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .card { background: #1e293b; width: 100%; max-width: 400px; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #334155; }
+        h2 { margin-bottom: 15px; color: #38bdf8; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; outline: none; }
+        button { width: 100%; padding: 12px; background: #0284c7; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .info { margin-top: 15px; text-align: left; display: none; background: #0f172a; padding: 15px; border-radius: 8px; }
+        .info p { margin-bottom: 8px; font-size: 14px; }
+        .error { color: #f43f5e; margin-top: 10px; font-size: 14px; display: none; }
+        .loader { margin-top: 10px; display: none; color: #38bdf8; }
+    </style>
+</head>
+<body>
 
-    result.style.display = 'none';
+<div class="card">
+    <h2>FREE FIRE PLAYER INFO</h2>
+    <input type="text" id="uidInput" placeholder="Enter Player UID">
+    <button onclick="getProfile()">Search Profile</button>
+    
+    <div id="loader" class="loader">Loading...</div>
+    <div id="error" class="error"></div>
+
+    <div id="info" class="info">
+        <p><strong>Name:</strong> <span id="pName"></span></p>
+        <p><strong>Level:</strong> <span id="pLevel"></span></p>
+        <p><strong>Likes:</strong> <span id="pLikes"></span></p>
+        <p><strong>Region:</strong> <span id="pRegion"></span></p>
+    </div>
+</div>
+
+<script>
+async function getProfile() {
+    const uid = document.getElementById('uidInput').value.trim();
+    const loader = document.getElementById('loader');
+    const error = document.getElementById('error');
+    const info = document.getElementById('info');
+
+    if(!uid) {
+        alert('Please enter a UID');
+        return;
+    }
+
+    info.style.display = 'none';
     error.style.display = 'none';
     loader.style.display = 'block';
 
-    // API URL
-    const apiUrl = 'https://ff-info-ro45.vercel.app/api?uid=' + uid + '&key=Anurag';
-    
-    // API calling via a reliable CORS proxy
-    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(apiUrl);
+    const targetUrl = `https://ff-info-ro45.vercel.app/api?uid=${uid}&key=Anurag`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
     try {
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
+        const res = await fetch(proxyUrl);
+        if(!res.ok) throw new Error('Proxy connection failed');
         
-        // allorigins.win returns data inside a 'contents' field
-        const player = JSON.parse(data.contents);
+        const wrapper = await res.json();
+        const data = JSON.parse(wrapper.contents);
 
-        if(player.basicInfo) {
-            document.getElementById('pName').innerText = player.basicInfo.nickname;
-            document.getElementById('pLevel').innerText = player.basicInfo.level;
-            document.getElementById('pLikes').innerText = player.basicInfo.liked;
-            result.style.display = 'block';
+        if(data && data.basicInfo) {
+            document.getElementById('pName').innerText = data.basicInfo.nickname || 'N/A';
+            document.getElementById('pLevel').innerText = data.basicInfo.level || '0';
+            document.getElementById('pLikes').innerText = data.basicInfo.liked || '0';
+            document.getElementById('pRegion').innerText = data.basicInfo.region || 'N/A';
+            info.style.display = 'block';
         } else {
-            throw new Error("No data found");
+            throw new Error('Invalid UID or Data not available');
         }
-    } catch(e) {
-        console.error(e);
-        error.innerText = "Error: " + e.message;
+    } catch(err) {
+        error.innerText = err.message || 'Failed to fetch data';
         error.style.display = 'block';
     } finally {
         loader.style.display = 'none';
     }
 }
 </script>
+
+</body>
+</html>
